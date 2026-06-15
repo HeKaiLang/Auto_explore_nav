@@ -1,0 +1,45 @@
+# =============================================================================
+# Costmap Common Parameters
+# 用于 global_costmap 和 local_costmap 共享
+# =============================================================================
+# 机器人 footprint（履带机器人近似矩形）
+footprint: [[-0.25, -0.175], [-0.25, 0.175], [0.25, 0.175], [0.25, -0.175]]
+
+# 使用半径的替代方案（如果使用圆形机器人）
+# robot_radius: 0.3
+
+# 地图变换容忍度
+transform_tolerance: 2.0
+
+# 障碍物层
+obstacle_layer:
+  enabled: true
+  obstacle_range: 10
+  raytrace_range: 8
+  inflation_radius: 0.1
+  track_unknown_space: true
+  combination_method: 1
+  observation_sources: laser_scan_sensor
+  laser_scan_sensor:
+    sensor_frame: livox_link
+    data_type: LaserScan
+    topic: /scan
+    marking: true
+    clearing: true
+    min_obstacle_height: -0.5
+    max_obstacle_height: 2.0
+
+# 膨胀层
+inflation_layer:
+  enabled: true
+  inflation_radius: 0.1
+  cost_scaling_factor: 5.0
+
+# 静态地图层
+# static_layer:
+#   enabled: true
+#   map_topic: /map
+static_layer:
+  enabled: false
+# 未知空间处理
+unknown_cost_value: 255

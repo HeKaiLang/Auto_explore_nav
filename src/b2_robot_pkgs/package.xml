@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>b2_robot_pkgs</name>
+  <version>0.1.0</version>
+  <description>
+    ROS packages for Plan B2 autonomous exploration and navigation
+    using move_base_flex + explore_lite + AMCL on a tracked robot.
+  </description>
+  <maintainer email="robot@example.com">B2 Project</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>move_base_flex</exec_depend>
+  <exec_depend>explore_lite</exec_depend>
+  <exec_depend>amcl</exec_depend>
+  <exec_depend>map_server</exec_depend>
+  <exec_depend>pointcloud_to_laserscan</exec_depend>
+  <exec_depend>teb_local_planner</exec_depend>
+  <exec_depend>yocs_cmd_vel_mux</exec_depend>
+  <exec_depend>rviz</exec_depend>
+
+  <export>
+    <!-- Gazebo model path can be exported if needed -->
+  </export>
+</package>

@@ -1,0 +1,12 @@
+# =============================================================================
+# Move Base Flex - Local Controllers Configuration
+# 方案 B2：TEB Local Planner 为主，DWA 为备选
+# =============================================================================
+controllers:
+  - name: 'TEBLocalPlannerROS'
+    type: 'teb_local_planner/TebLocalPlannerROS'
+  - name: 'DWAPlannerROS'
+    type: 'dwa_local_planner/DWAPlannerROS'
+
+controller_frequency: 10.0
+controller_patience: 5.0
