@@ -2,18 +2,18 @@
 # Global Costmap Parameters
 # =============================================================================
 global_costmap:
-  global_frame: camera_init
+  global_frame: map
   robot_base_frame: base_link
   transform_tolerance: 2.0
-  update_frequency: 1.0
+  update_frequency: 2.0
   publish_frequency: 0.5
   static_map: false
-  rolling_window: true        # 关闭滚动，让地图边缘保持 unknown
+  rolling_window: true        # 在没有外部地图（/map）输入的情况下，rolling_window 不能设为 false。
   resolution: 0.05
-  width: 50.0                  # 地图宽度（米）
-  height: 50.0                 # 地图高度（米）
-  origin_x: -25.0              # 让初始位置（camera_init 原点）位于地图中心
-  origin_y: -25.0
+  width: 100.0                  # 地图宽度（米）
+  height: 100.0                 # 地图高度（米）
+  origin_x: -50.0              # 让初始位置（map 原点）位于地图中心
+  origin_y: -50.0
 
   plugins:
     # - {name: static_layer, type: "costmap_2d::StaticLayer"}

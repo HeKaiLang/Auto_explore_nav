@@ -5,14 +5,14 @@
      ============================================================================= -->
 <launch>
   <!-- 参数 -->
-  <arg name="world_name" default="$(find b2_robot_pkgs)/worlds/myworld.world"/>
+  <arg name="world_name" default="$(find b2_robot_pkgs)/worlds/myworld_street.world"/>
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
-  <arg name="x_pos" default="1.0"/>
-  <arg name="y_pos" default="1.0"/>
+  <arg name="x_pos" default="-10.0"/>
+  <arg name="y_pos" default="5.0"/>
   <arg name="z_pos" default="0.175"/>
   <arg name="yaw" default="0.0"/>
 

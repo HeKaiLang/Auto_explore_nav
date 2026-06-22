@@ -28,7 +28,7 @@ if __name__ == '__main__':
     client = actionlib.SimpleActionClient('/move_base_flex/move_base', MoveBaseAction)
     rospy.loginfo("等待 MBF Action Server...")
     
-    if not client.wait_for_server(rospy.Duration(100.0)):
+    if not client.wait_for_server(rospy.Duration(1000.0)):
         rospy.logerr("MBF 未在 10 秒内启动！Subscriber 已注册，但 goal 会被丢弃。")
     else:
         rospy.loginfo("已连接 MBF，桥接就绪。")

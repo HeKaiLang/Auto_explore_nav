@@ -8,5 +8,5 @@ controllers:
   - name: 'DWAPlannerROS'
     type: 'dwa_local_planner/DWAPlannerROS'
 
-controller_frequency: 10.0
+controller_frequency: 20.0
 controller_patience: 5.0

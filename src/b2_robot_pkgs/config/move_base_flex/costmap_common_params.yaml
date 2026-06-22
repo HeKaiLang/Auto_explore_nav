@@ -2,6 +2,12 @@
 # Costmap Common Parameters
 # 用于 global_costmap 和 local_costmap 共享
 # =============================================================================
+
+
+# 必须放在顶层！控制 LayeredCostmap 的默认代价值,如果不添加的话，运行 rosrun b2_robot_pkgs check_costmap_common_params.py 会发现地图完全是已知的。
+track_unknown_space: true
+
+
 # 机器人 footprint（履带机器人近似矩形）
 footprint: [[-0.25, -0.175], [-0.25, 0.175], [0.25, 0.175], [0.25, -0.175]]
 
@@ -11,11 +17,12 @@ footprint: [[-0.25, -0.175], [-0.25, 0.175], [0.25, 0.175], [0.25, -0.175]]
 # 地图变换容忍度
 transform_tolerance: 2.0
 
+
 # 障碍物层
 obstacle_layer:
   enabled: true
-  obstacle_range: 10
-  raytrace_range: 8
+  obstacle_range: 22
+  raytrace_range: 20
   inflation_radius: 0.1
   track_unknown_space: true
   combination_method: 1

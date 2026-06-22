@@ -3,8 +3,8 @@
 # =============================================================================
 TebLocalPlannerROS:
   # 轨迹优化参数
-  odom_topic: odom
-  map_frame: odom
+  odom_topic: Odometry
+  map_frame: map
 
   # 轨迹参数
   teb_autosize: true
@@ -23,20 +23,20 @@ TebLocalPlannerROS:
   shrink_horizon_min_duration: 10.0
 
   # 机器人运动学参数（履带机器人近似为差速模型）
-  max_vel_x: 0.5
-  max_vel_x_backwards: 0.2
+  max_vel_x: 10
+  max_vel_x_backwards: 1
   max_vel_y: 0.0
-  max_vel_theta: 1.0
-  acc_lim_x: 0.5
+  max_vel_theta: 6
+  acc_lim_x: 5
   acc_lim_y: 0.0
-  acc_lim_theta: 0.8
+  acc_lim_theta: 3
   min_turning_radius: 0.0        # 差速/履带机器人设 0
   wheelbase: 0.0
   cmd_angle_instead_rotvel: false
 
   # 目标容忍度
   xy_goal_tolerance: 0.15
-  yaw_goal_tolerance: 0.25
+  yaw_goal_tolerance: 0.5
   free_goal_vel: false
   complete_global_plan: true
 
@@ -47,7 +47,7 @@ TebLocalPlannerROS:
   include_dynamic_obstacles: true
   include_costmap_obstacles: true
   costmap_obstacles_behind_robot_dist: 1.0
-  obstacle_poses_affected: 30
+  obstacle_poses_affected: 10
   legacy_obstacle_association: false
   obstacle_association_force_inclusion_factor: 1.5
   obstacle_association_cutoff_factor: 5.0
@@ -69,11 +69,11 @@ TebLocalPlannerROS:
   weight_acc_lim_x: 1.0
   weight_acc_lim_theta: 1.0
   weight_kinematics_nh: 1000.0
-  weight_kinematics_forward_drive: 1.0
+  weight_kinematics_forward_drive: 10.0
   weight_kinematics_turning_radius: 1.0
   weight_optimaltime: 1.0
   weight_shortest_path: 0.0
-  weight_obstacle: 100.0
+  weight_obstacle: 50.0
   weight_inflation: 0.1
   weight_dynamic_obstacle: 10.0
   weight_dynamic_obstacle_inflation: 0.6

@@ -63,7 +63,7 @@
   <joint name="livox_joint" type="fixed">
     <parent link="base_link"/>
     <child link="livox_link"/>
-    <origin xyz="0.2 0.0 0.15" rpy="0 0 0"/>
+    <origin xyz="0.25 0.0 0.15" rpy="0 0 0"/>
   </joint>
 
   <joint name="imu_joint" type="fixed">
@@ -105,7 +105,7 @@
           </scan>
           <range>
             <min>0.1</min>
-            <max>50.0</max>
+            <max>40.0</max>
             <resolution>0.01</resolution>
           </range>
         </ray>
@@ -132,9 +132,9 @@
         <z><noise type="gaussian"><mean>0.0</mean><stddev>0.01</stddev></noise></z>
       </angular_velocity>
       <linear_acceleration>
-        <x><noise type="gaussian"><mean>0.0</mean><stddev>0.1</stddev></noise></x>
-        <y><noise type="gaussian"><mean>0.0</mean><stddev>0.1</stddev></noise></y>
-        <z><noise type="gaussian"><mean>0.0</mean><stddev>0.1</stddev></noise></z>
+        <x><noise type="gaussian"><mean>0.0</mean><stddev>0.01</stddev></noise></x>
+        <y><noise type="gaussian"><mean>0.0</mean><stddev>0.01</stddev></noise></y>
+        <z><noise type="gaussian"><mean>0.0</mean><stddev>0.01</stddev></noise></z>
       </linear_acceleration>
     </imu>
   </sensor>
@@ -150,13 +150,15 @@
       <odometryTopic>odom_topic</odometryTopic>
       <robotBaseFrame>base_link</robotBaseFrame>
       
-      <leftJoint>right_track_joint</leftJoint>
-      <rightJoint>left_track_joint</rightJoint>
+      <leftJoint>left_track_joint</leftJoint>
+      <rightJoint>right_track_joint</rightJoint>
+      <!-- <leftJoint>right_track_joint</leftJoint>
+      <rightJoint>left_track_joint</rightJoint> -->
       <wheelSeparation>0.35</wheelSeparation>
       <wheelDiameter>0.15</wheelDiameter>
       
-      <maxWheelTorque>5</maxWheelTorque>
-      <maxWheelAcceleration>0.5</maxWheelAcceleration>
+      <maxWheelTorque>10</maxWheelTorque>
+      <maxWheelAcceleration>2.0</maxWheelAcceleration>
       <odometrySource>1</odometrySource>
       
       <publishOdomTF>false</publishOdomTF>
@@ -216,14 +218,14 @@
   <joint name="left_track_joint" type="continuous">
     <parent link="base_link"/>
     <child link="left_track_link"/>
-    <origin xyz="0.1 0.2 -0.1" rpy="1.5708 0 0"/>
+    <origin xyz="-0.1 0.2 -0.1" rpy="-1.5708 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
   <joint name="right_track_joint" type="continuous">
     <parent link="base_link"/>
     <child link="right_track_link"/>
-    <origin xyz="0.1 -0.2 -0.10" rpy="1.5708 0 0"/>
+    <origin xyz="-0.1 -0.2 -0.10" rpy="-1.5708 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
@@ -256,7 +258,7 @@
   <joint name="caster_joint_h" type="fixed">
     <parent link="base_link"/>
     <child link="caster_wheel_h"/>
-    <origin xyz="-0.2 0 -0.1375" rpy="0 0 0"/>
+    <origin xyz="0.2 0 -0.1375" rpy="0 0 0"/>
   </joint>
 
   <gazebo reference="caster_wheel_h">
@@ -267,4 +269,15 @@
     <maxVel>0.01</maxVel>
   </gazebo>
 
+
+
+<gazebo reference="base_link">
+  <material>Gazebo/Red</material>
+</gazebo>
+<gazebo reference="left_track_link">
+  <material>Gazebo/Blue</material>
+</gazebo>
+<gazebo reference="right_track_link">
+  <material>Gazebo/Black</material>
+</gazebo>
 </robot>

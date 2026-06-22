@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!-- =============================================================================
+     view_robot.launch
+     纯 RViz 模式：加载 xacro 并可视化，用于验证 URDF 修改
+     ============================================================================= -->
+<launch>
+  <!-- 1. 加载机器人描述（xacro） -->
+  <param name="robot_description" 
+         command="$(find xacro)/xacro $(find b2_robot_pkgs)/models/tracked_robot/mid360_sensor.urdf.xacro"/>
+
+  <!-- 2. 发布静态 TF 和关节状态 → TF -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0"/>
+  </node>
+
+  <!-- 3. 发布 joint_states（纯可视化模式下 continuous 关节需要） -->
+  <node pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" name="joint_state_publisher_gui">
+    <param name="rate" value="50"/>
+  </node>
+
+  <!-- 4. 启动 RViz（如果没有保存的配置，会打开空白界面，手动 Add → RobotModel） -->
+  <node pkg="rviz" type="rviz" name="rviz" 
+        args="-d $(find b2_robot_pkgs)/config/rviz/view_robot.rviz" 
+        if="$(eval optenv('DISPLAY', '') != '')"/>
+</launch>
