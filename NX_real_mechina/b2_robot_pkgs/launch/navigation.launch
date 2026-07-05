@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!-- =============================================================================
+     navigation.launch
+     导航模式：map_server + amcl + move_base_flex + yocs_cmd_vel_mux
+     （不启动 explore_lite，用于已知地图导航）
+     ============================================================================= -->
+<launch>
+  <!-- 参数 -->
+  <arg name="map_file" default="$(find b2_robot_pkgs)/maps/lab_indoor.yaml"/>
+  <arg name="cmd_vel_topic" default="/cmd_vel_mux/output/cmd_vel"/>
+  <arg name="odom_topic" default="odom"/>
+  <arg name="scan_topic" default="/scan"/>
+  <arg name="cloud_topic" default="/livox/lidar"/>
+  <arg name="initial_pose_x" default="0.0"/>
+  <arg name="initial_pose_y" default="0.0"/>
+  <arg name="initial_pose_a" default="0.0"/>
+
+  <!-- 1. Map Server -->
+  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)"/>
+
+  <!-- 2. AMCL -->
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+    <remap from="scan" to="$(arg scan_topic)"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/amcl/amcl.yaml" command="load"/>
+    <param name="initial_pose_x" value="$(arg initial_pose_x)"/>
+    <param name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <param name="initial_pose_a" value="$(arg initial_pose_a)"/>
+  </node>
+
+  <!-- 3. PointCloud 转 LaserScan（与 exploration 相同） -->
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+    <remap from="cloud_in" to="$(arg cloud_topic)"/>
+    <remap from="scan" to="$(arg scan_topic)"/>
+    <param name="target_frame" value="livox_frame"/>
+    <param name="transform_tolerance" value="0.01"/>
+    <param name="min_height" value="-0.5"/>
+    <param name="max_height" value="0.5"/>
+    <param name="angle_min" value="-3.14159"/>
+    <param name="angle_max" value="3.14159"/>
+    <param name="angle_increment" value="0.0087"/>
+    <param name="scan_time" value="0.1"/>
+    <param name="range_min" value="0.1"/>
+    <param name="range_max" value="100.0"/>
+    <param name="use_inf" value="true"/>
+    <param name="inf_epsilon" value="1.0"/>
+  </node>
+
+  <!-- 4. Move Base Flex -->
+  <node pkg="mbf_costmap_nav" type="mbf_costmap_nav" respawn="false" name="move_base_flex" output="screen">
+    <param name="cmd_vel_topic" value="$(arg cmd_vel_topic)"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="global_frame" value="map"/>
+    <param name="robot_base_frame" value="base_link"/>
+
+    <!-- 加载 global costmap 参数 -->
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/costmap_common_params.yaml" ns="global_costmap" command="load" subst_value="true"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/global_costmap_params.yaml" ns="global_costmap" command="load" subst_value="true"/>
+
+    <!-- 加载 local costmap 参数 -->
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/costmap_common_params.yaml" ns="local_costmap" command="load" subst_value="true"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/local_costmap_params.yaml" ns="local_costmap" command="load" subst_value="true"/>
+
+    <!-- 加载 planners / controllers / recovery -->
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/planners.yaml" command="load"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/controllers.yaml" command="load"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/recovery_behaviors.yaml" command="load"/>
+
+    <!-- 加载 TEB 局部规划器参数 -->
+    <rosparam file="$(find b2_robot_pkgs)/config/teb/teb_local_planner.yaml" command="load" ns="TebLocalPlannerROS"/>
+  </node>
+
+  <!-- 5. yocs_cmd_vel_mux -->
+  <node pkg="yocs_cmd_vel_mux" type="cmd_vel_mux_node" name="cmd_vel_mux">
+    <param name="yaml_cfg_file" value="$(find b2_robot_pkgs)/config/yocs_cmd_vel_mux/mux.yaml"/>
+    <remap from="cmd_vel_mux/output/cmd_vel" to="$(arg cmd_vel_topic)"/>
+  </node>
+</launch>

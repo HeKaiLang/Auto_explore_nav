@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<!-- =============================================================================
+     exploration.launch
+     探索模式：pointcloud_to_laserscan + move_base_flex + explore_lite + twist_mux
+     ============================================================================= -->
+<launch>
+  <!-- 参数 -->
+  <arg name="cmd_vel_topic" default="cmd_vel"/>
+  <arg name="odom_topic" default="odom"/>
+  <arg name="scan_topic" default="/scan"/>
+  <arg name="cloud_topic" default="/livox/lidar"/>
+
+  <!-- 启动Fast-LIO-SLAM，发布里程计和点云数据 -->
+  <!-- <include file="$(find fast_lio)/launch/mapping_mid360.launch"/> -->
+
+
+
+
+  <!-- 启动 Livox -->
+<!-- 启动 Livox -->
+<include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch">
+     <!--PointClude2 -->
+    <arg name="xfer_format" value="0"/>
+    
+    <arg name="msg_frame_id" value="livox_link"/>
+</include>
+
+    
+
+    <!-- 启动Fast-LIO-SLAM，发布里程计和点云数据 -->
+  <include file="$(find fast_lio)/launch/mapping_mid360.launch"/>
+  
+  <!-- TF: base_link to livox_link-->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_livox_link"
+      args="0.5 0 0.1 0 0 0 base_link livox_link"/>
+      
+  <!-- TF: base_link to livox_link-->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_camera_init"
+      args="0 0 0 0 0 0 map camera_init"/>
+      
+      
+   <!-- TF: base_link to livox_link-->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="body_to_base_link"
+        args="0 0 0 0 0 0 body base_link"/>
+        
+        
+  <!-- 1. PointCloud 转 LaserScan -->
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+    <remap from="cloud_in" to="$(arg cloud_topic)"/>
+    <remap from="scan" to="$(arg scan_topic)"/>
+    <param name="target_frame" value="livox_link"/>
+    <param name="transform_tolerance" value="0.01"/>
+    <param name="min_height" value="0.2"/>
+    <param name="max_height" value="0.4"/>
+    <param name="angle_min" value="-3.14159"/>
+    <param name="angle_max" value="3.14159"/>
+    <param name="angle_increment" value="0.0087"/>
+    <param name="scan_time" value="0.1"/>
+    <param name="range_min" value="0.1"/>
+    <param name="range_max" value="5.0"/>
+    <param name="use_inf" value="true"/>
+    <param name="inf_epsilon" value="1.0"/>
+  </node>
+
+  <!-- 2. Move Base Flex -->
+  <node pkg="mbf_costmap_nav" type="mbf_costmap_nav" respawn="false" name="move_base_flex" output="screen">
+
+    <param name="planner" value="GlobalPlanner"/>
+    <param name="cmd_vel_topic" value="/cmd_vel"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="global_frame" value="map"/>
+    <param name="robot_base_frame" value="base_link"/>
+
+    <!-- 加载 global costmap 参数 -->
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/costmap_common_params.yaml" ns="global_costmap" command="load" subst_value="true"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/global_costmap_params.yaml"  command="load" subst_value="true"/>
+
+    <!-- 加载 local costmap 参数 -->
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/costmap_common_params.yaml" ns="local_costmap" command="load" subst_value="true"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/local_costmap_params.yaml" command="load" subst_value="true"/>
+
+    <!-- 加载 planners / controllers / recovery -->
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/planners.yaml" command="load"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/controllers.yaml" command="load"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/recovery_behaviors.yaml" command="load"/>
+
+    <!-- 加载 TEB 局部规划器参数 -->
+    <rosparam file="$(find b2_robot_pkgs)/config/teb/teb_local_planner.yaml" command="load" ns="TebLocalPlannerROS"/>
+  </node>
+
+  <!-- 2.5 MBF 兼容层，必须加 -->
+  <node pkg="mbf_costmap_nav" type="move_base_legacy_relay.py" name="move_base" output="screen"/>
+
+  <!-- 3. explore_lite -->
+  <node pkg="explore_lite" type="explore" respawn="false" name="explore" output="screen">
+  <!-- 重映射 -->
+    <!-- <remap from="move_base/goal" to="move_base_flex/move_base/goal"/>
+    <remap from="move_base/cancel" to="move_base_flex/move_base/cancel"/>
+    <remap from="move_base/feedback" to="move_base_flex/move_base/feedback"/>
+    <remap from="move_base/result" to="move_base_flex/move_base/result"/>
+    <remap from="move_base/status" to="move_base_flex/move_base/status"/> -->
+
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="robot_base_frame" value="base_link"/>
+    <param name="costmap_topic" value="/move_base_flex/global_costmap/costmap"/>
+    <param name="costmap_updates_topic" value="/move_base_flex/global_costmap/costmap_updates"/>
+    <param name="visualize" value="true"/>
+    <param name="planner_frequency" value="0.33"/>
+    <param name="progress_timeout" value="30.0"/>
+    <param name="potential_scale" value="3.0"/>
+    <param name="orientation_scale" value="0.0"/>
+    <param name="gain_scale" value="1.0"/>
+    <param name="transform_tolerance" value="0.3"/>
+    <param name="min_frontier_size" value="0.75"/>
+  </node>
+    
+
+  <!-- 覆盖 explore_lite 参数 -->
+  <rosparam file="$(find b2_robot_pkgs)/config/explore/explore.yaml" command="load" ns="explore"/>
+
+  <!-- 4. twist_mux 速度多路复用 -->
+
+  <node pkg="twist_mux" type="twist_mux" name="twist_mux">
+    <rosparam file="$(find b2_robot_pkgs)/config/twist_mux/twist_mux.yaml" command="load"/>
+    <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
+  </node>
+  <!-- <node pkg="b2_robot_pkgs" type="mbf_rviz_bridge.py" name="mbf_rviz_bridge" output="screen"/> -->
+</launch>

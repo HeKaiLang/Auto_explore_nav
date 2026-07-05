@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- 静态 TF -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="body_to_base_link"
+        args="0 0 0 0 0 0 body base_link"/>
+
+  <!-- PointCloud 转 LaserScan -->
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+    <remap from="cloud_in" to="/livox/lidar"/>
+    <remap from="scan" to="/scan"/>
+    <param name="target_frame" value="livox_link"/>
+    <param name="transform_tolerance" value="0.01"/>
+    <param name="min_height" value="-0.2"/>
+    <param name="max_height" value="0.1"/>
+    <param name="angle_min" value="-3.14159"/>
+    <param name="angle_max" value="3.14159"/>
+    <param name="angle_increment" value="0.0087"/>
+    <param name="scan_time" value="0.1"/>
+    <param name="range_min" value="0.1"/>
+    <param name="range_max" value="20.0"/>
+    <param name="use_inf" value="true"/>
+    <param name="inf_epsilon" value="1.0"/>
+  </node>
+
+  <!-- 只启动 MBF，不启动 move_base_legacy_relay 和 explore_lite -->
+  <node pkg="mbf_costmap_nav" type="mbf_costmap_nav" respawn="false" name="move_base_flex" output="screen">
+    <param name="cmd_vel_topic" value="/cmd_vel"/>
+    <param name="odom_topic" value="odom"/>
+    <param name="global_frame" value="camera_init"/>
+    <param name="robot_base_frame" value="base_link"/>
+    <!-- 显式锁定默认 planner -->
+    <param name="planner" value="GlobalPlanner"/>
+
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/costmap_common_params.yaml" ns="global_costmap" command="load" subst_value="true"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/global_costmap_params.yaml" command="load" subst_value="true"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/costmap_common_params.yaml" ns="local_costmap" command="load" subst_value="true"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/local_costmap_params.yaml" command="load" subst_value="true"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/planners.yaml" command="load"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/controllers.yaml" command="load"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/move_base_flex/recovery_behaviors.yaml" command="load"/>
+    <rosparam file="$(find b2_robot_pkgs)/config/teb/teb_local_planner.yaml" command="load" ns="TebLocalPlannerROS"/>
+  </node>
+</launch>

@@ -1,0 +1,283 @@
+<?xml version="1.0"?>
+<!-- =============================================================================
+     mid360_sensor.urdf.xacro
+     MID360 LiDAR xacro 宏定义
+     参考 Tfly6/Mid360_px4_sim_plugin 示例配置
+     ============================================================================= -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="tracked_robot">
+
+  <!-- 基础连杆：底盘 -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.5 0.35 0.2"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.5 0.35 0.2"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="10.0"/>
+      <inertia ixx="0.135417" ixy="0.0" ixz="0.0"
+               iyy="0.241667" iyz="0.0"
+               izz="0.310417"/>
+    </inertial>
+  </link>
+
+  <!-- MID360 安装支架连杆 -->
+  <link name="livox_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.03" length="0.05"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+    <!-- 注意：这里去掉了 collision，因为 Livox 插件的射线原点与 link 原点重合，
+         若保留 collision，所有射线会首先与自身圆柱发生碰撞，导致点云为空。 -->
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.000043" ixy="0.0" ixz="0.0"
+               iyy="0.000043" iyz="0.0"
+               izz="0.000045"/>
+    </inertial>
+  </link>
+
+  <!-- IMU 连杆 -->
+  <link name="imu_link">
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.000001" ixy="0.0" ixz="0.0"
+               iyy="0.000001" iyz="0.0"
+               izz="0.000001"/>
+    </inertial>
+  </link>
+
+  <!-- 关节定义 -->
+  <joint name="livox_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="livox_link"/>
+    <origin xyz="0.25 0.0 0.15" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="0.0 0.0 0.05" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Gazebo 插件：MID360 LiDAR -->
+  <gazebo reference="livox_link">
+    <sensor type="ray" name="mid360_sensor">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>false</visualize>
+      <always_on>true</always_on>
+      <update_rate>10</update_rate>
+      <plugin name="livox_laser_simulation" filename="liblivox_laser_simulation.so">
+          <ros_topic>/livox/lidar</ros_topic>
+        <frameName>livox_link</frameName>
+        <csv_file_name>mid360-real-centr.csv</csv_file_name>
+        <samples>18000</samples>
+        <downsample>1</downsample>
+        <publish_pointcloud_type>1</publish_pointcloud_type>
+        <visualize>false</visualize>
+        <debug>false</debug>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>100</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159</min_angle>
+              <max_angle>3.14159</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>50</samples>
+              <resolution>1</resolution>
+              <min_angle>-0.785</min_angle>
+              <max_angle>0.785</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.1</min>
+            <max>40.0</max>
+            <resolution>0.01</resolution>
+          </range>
+        </ray>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+
+  <!-- Gazebo 插件：IMU -->
+  <gazebo reference="imu_link">
+  <sensor type="imu" name="imu_sensor">
+    <plugin name="imu_plugin" filename="libgazebo_ros_imu_sensor.so">
+      <topicName>/livox/imu</topicName>
+      <frameName>imu_link</frameName>
+      <updateRateHZ>100</updateRateHZ>
+    </plugin>
+    <always_on>true</always_on>
+    <update_rate>100</update_rate>
+    <visualize>true</visualize>
+    <imu>
+      <angular_velocity>
+        <x><noise type="gaussian"><mean>0.0</mean><stddev>0.01</stddev></noise></x>
+        <y><noise type="gaussian"><mean>0.0</mean><stddev>0.01</stddev></noise></y>
+        <z><noise type="gaussian"><mean>0.0</mean><stddev>0.01</stddev></noise></z>
+      </angular_velocity>
+      <linear_acceleration>
+        <x><noise type="gaussian"><mean>0.0</mean><stddev>0.01</stddev></noise></x>
+        <y><noise type="gaussian"><mean>0.0</mean><stddev>0.01</stddev></noise></y>
+        <z><noise type="gaussian"><mean>0.0</mean><stddev>0.01</stddev></noise></z>
+      </linear_acceleration>
+    </imu>
+  </sensor>
+</gazebo>
+
+ 
+
+  <!-- Gazebo 差速驱动插件（履带近似） -->
+   <gazebo>
+    <plugin name="diff_drive_controller" filename="libgazebo_ros_diff_drive.so">
+      <!-- ROS1 不使用 <ros> 标签，直接用 topic 参数 -->
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom_topic</odometryTopic>
+      <robotBaseFrame>base_link</robotBaseFrame>
+      
+      <leftJoint>left_track_joint</leftJoint>
+      <rightJoint>right_track_joint</rightJoint>
+      <!-- <leftJoint>right_track_joint</leftJoint>
+      <rightJoint>left_track_joint</rightJoint> -->
+      <wheelSeparation>0.35</wheelSeparation>
+      <wheelDiameter>0.15</wheelDiameter>
+      
+      <maxWheelTorque>10</maxWheelTorque>
+      <maxWheelAcceleration>2.0</maxWheelAcceleration>
+      <odometrySource>1</odometrySource>
+      
+      <publishOdomTF>false</publishOdomTF>
+      <publishWheelTF>false</publishWheelTF>
+      <updateRate>50.0</updateRate>
+      
+      <!--  legacyMode 在 Noetic 中设为 false -->
+      <legacyMode>false</legacyMode>
+    </plugin>
+  </gazebo>
+
+  <!-- 履带简化模型（左右驱动轮） -->
+  <link name="left_track_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.075" length="0.05"/>
+      </geometry>
+      <material name="dark_gray">
+        <color rgba="0.3 0.3 0.3 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.075" length="0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.000807" ixy="0.0" ixz="0.0"
+               iyy="0.000807" iyz="0.0"
+               izz="0.001406"/>
+    </inertial>
+  </link>
+
+  <link name="right_track_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.075" length="0.05"/>
+      </geometry>
+      <material name="dark_gray">
+        <color rgba="0.3 0.3 0.3 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.075" length="0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.000807" ixy="0.0" ixz="0.0"
+               iyy="0.000807" iyz="0.0"
+               izz="0.001406"/>
+    </inertial>
+  </link>
+
+  <joint name="left_track_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="left_track_link"/>
+    <origin xyz="-0.1 0.2 -0.1" rpy="-1.5708 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <joint name="right_track_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="right_track_link"/>
+    <origin xyz="-0.1 -0.2 -0.10" rpy="-1.5708 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- 惰轮（支撑轮） -->
+  <link name="caster_wheel_h">
+    <visual>
+      <geometry>
+        <sphere radius="0.0375"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <sphere radius="0.0375"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+               iyy="0.0001" iyz="0.0"
+               izz="0.0001"/>
+    </inertial>
+  </link>
+
+
+
+
+  <joint name="caster_joint_h" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster_wheel_h"/>
+    <origin xyz="0.2 0 -0.1375" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="caster_wheel_h">
+    <mu1>0.0</mu1>    <mu2>0.0</mu2>
+    <kp>1000000.0</kp> 
+    <kd>100.0</kd>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.01</maxVel>
+  </gazebo>
+
+
+
+<gazebo reference="base_link">
+  <material>Gazebo/Red</material>
+</gazebo>
+<gazebo reference="left_track_link">
+  <material>Gazebo/Blue</material>
+</gazebo>
+<gazebo reference="right_track_link">
+  <material>Gazebo/Black</material>
+</gazebo>
+</robot>

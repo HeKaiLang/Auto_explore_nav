@@ -1,0 +1,26 @@
+# =============================================================================
+# twist_mux 多路复用器配置
+# 格式为 twist_mux 标准 list 格式
+# 优先级：teleop/keyboard > navigation
+# =============================================================================
+topics:
+  - name    : "navigation"
+    topic   : "/nav_cmd_vel"
+    timeout : 0.5
+    priority: 10
+
+  - name    : "teleop"
+    topic   : "/joy_cmd_vel"
+    timeout : 0.5
+    priority: 100
+
+  - name    : "keyboard"
+    topic   : "/keyboard_cmd_vel"
+    timeout : 0.5
+    priority: 100
+
+locks:
+  - name    : "pause"
+    topic   : "/pause_navigation"
+    timeout : 0.0
+    priority: 100

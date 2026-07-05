@@ -1,0 +1,11 @@
+# =============================================================================
+# Move Base Flex - Global Planners Configuration
+# 方案 B2：TEB + Global Planner + DWA
+# =============================================================================
+planners:
+  - name: 'GlobalPlanner'
+    type: 'global_planner/GlobalPlanner'
+  # - name: 'NavfnROS'
+  #   type: 'navfn/NavfnROS'
+
+# TEB Local Planner 作为局部规划器在 controllers.yaml 中配置

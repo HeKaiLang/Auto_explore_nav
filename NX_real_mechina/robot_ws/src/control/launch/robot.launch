@@ -1,0 +1,4 @@
+<launch>
+ 	<node pkg="control" name="usb_thw" type="usb_thw"/>
+</launch>
+

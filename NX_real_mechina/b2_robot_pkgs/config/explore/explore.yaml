@@ -1,0 +1,33 @@
+# =============================================================================
+# explore_lite 参数配置
+# 参考文档表 3（第 9 页）
+# =============================================================================
+# Costmap 话题（来自 move_base_flex 的 global costmap）
+costmap_topic: /move_base_flex/global_costmap/costmap
+
+# Costmap 更新话题
+costmap_updates_topic: /move_base_flex/global_costmap/costmap_updates
+
+# 可视化边界话题
+visualize: true
+planner_frequency: 0.5
+
+# 进度超时（秒）：若机器人在此时间内未向边界移动，则视为探索完成或卡住
+progress_timeout: 30.0
+
+# 边界潜在值缩放系数（potential_scale）：越大越倾向于选择距离当前位置近的边界
+potential_scale: 3.0
+
+# 边界增益缩放系数（gain_scale）：越大越倾向于选择面积大的边界
+gain_scale: 1.0
+
+# 最小边界大小（格子数），小于此值的边界将被忽略
+min_frontier_size: 0.5
+
+# 变换容错时间（秒）
+transform_tolerance: 2
+# 导航目标发布频率
+planner_frequency: 0.5
+
+# 机器人底座坐标系
+robot_base_frame: base_link

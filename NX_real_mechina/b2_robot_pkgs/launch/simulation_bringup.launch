@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!-- =============================================================================
+     simulation_bringup.launch
+     Gazebo 仿真入口：加载实验室世界、生成履带机器人模型
+     ============================================================================= -->
+<launch>
+  <!-- 参数 -->
+  <arg name="world_name" default="$(find b2_robot_pkgs)/worlds/myworld_street.world"/>
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+  <arg name="x_pos" default="-10.0"/>
+  <arg name="y_pos" default="5.0"/>
+  <arg name="z_pos" default="0.175"/>
+  <arg name="yaw" default="0.0"/>
+
+   <!-- 启动 Livox -->
+  <include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch"/>
+  <!-- 启动 robot_state_publisher 发布 TF -->
+     <!--  
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0"/>
+  </node>
+ -->
+  <!-- 启动 joint_state_publisher -->
+   <!--  
+  <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher">
+    <param name="rate" value="50"/>
+  </node>
+   
+
+-->
+        
+
+  
+    <!-- 启动Fast-LIO-SLAM，发布里程计和点云数据 -->
+  <include file="$(find fast_lio)/launch/mapping_mid360.launch"/>
+</launch>

@@ -1,0 +1,104 @@
+# =============================================================================
+# TEB Local Planner 参数模板
+# =============================================================================
+TebLocalPlannerROS:
+  # 轨迹优化参数
+  odom_topic: Odometry
+  map_frame: map
+
+  # 轨迹参数
+  teb_autosize: true
+  dt_ref: 0.3
+  dt_hysteresis: 0.1
+  max_samples: 500
+  global_plan_overwrite_orientation: true
+  allow_init_with_backwards_motion: false
+  max_global_plan_lookahead_dist: 3.0
+  global_plan_viapoint_sep: -1.0
+  global_plan_prune_distance: 1.0
+  exact_arc_length: false
+  feasibility_check_no_poses: 2
+  publish_feedback: false
+  shrink_horizon_backup: true
+  shrink_horizon_min_duration: 10.0
+
+  # 机器人运动学参数（履带机器人近似为差速模型）
+  max_vel_x: 10
+  max_vel_x_backwards: 1
+  max_vel_y: 0.0
+  max_vel_theta: 6
+  acc_lim_x: 5
+  acc_lim_y: 0.0
+  acc_lim_theta: 3
+  min_turning_radius: 0.0        # 差速/履带机器人设 0
+  wheelbase: 0.0
+  cmd_angle_instead_rotvel: false
+
+  # 目标容忍度
+  xy_goal_tolerance: 0.15
+  yaw_goal_tolerance: 0.5
+  free_goal_vel: false
+  complete_global_plan: true
+
+  # 障碍物参数
+  min_obstacle_dist: 0.25
+  inflation_dist: 0.3
+  dynamic_obstacle_inflation_dist: 0.6
+  include_dynamic_obstacles: true
+  include_costmap_obstacles: true
+  costmap_obstacles_behind_robot_dist: 1.0
+  obstacle_poses_affected: 10
+  legacy_obstacle_association: false
+  obstacle_association_force_inclusion_factor: 1.5
+  obstacle_association_cutoff_factor: 5.0
+
+  # 代价转换参数
+  costmap_converter_plugin: ""
+  costmap_converter_spin_thread: true
+  costmap_converter_rate: 5.0
+
+  # 优化参数
+  no_inner_iterations: 5
+  no_outer_iterations: 4
+  optimization_activate: true
+  optimization_verbose: false
+  penalty_epsilon: 0.1
+  obstacle_cost_exponent: 4.0
+  weight_max_vel_x: 2.0
+  weight_max_vel_theta: 1.0
+  weight_acc_lim_x: 1.0
+  weight_acc_lim_theta: 1.0
+  weight_kinematics_nh: 1000.0
+  weight_kinematics_forward_drive: 10.0
+  weight_kinematics_turning_radius: 1.0
+  weight_optimaltime: 1.0
+  weight_shortest_path: 0.0
+  weight_obstacle: 50.0
+  weight_inflation: 0.1
+  weight_dynamic_obstacle: 10.0
+  weight_dynamic_obstacle_inflation: 0.6
+  weight_viapoint: 1.0
+  weight_adapt_factor: 2.0
+
+  # 同质性参数
+  enable_homotopy_class_planning: true
+  enable_multithreading: true
+  max_number_classes: 4
+  selection_cost_hysteresis: 1.0
+  selection_prefer_initial_plan: 0.9
+  selection_obst_cost_scale: 100.0
+  selection_alternative_time_cost: false
+  roadmap_graph_no_samples: 15
+  roadmap_graph_area_width: 5.0
+  roadmap_graph_area_length_scale: 1.0
+  h_signature_prescaler: 0.5
+  h_signature_threshold: 0.1
+  obstacle_heading_threshold: 0.45
+  switching_blocking_period: 0.0
+  viapoints_all_candidates: true
+  delete_detours_backwards: true
+  detours_orientation_tolerance: M_PI / 2.0
+  length_start_orientation_vector: 0.4
+  max_ratio_detour_duration_best_duration: 3.0
+  visualize_hc_graph: false
+  visualize_with_time_as_z_axis_scale: 0.0

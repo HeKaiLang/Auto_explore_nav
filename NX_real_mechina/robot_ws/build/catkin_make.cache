@@ -1,0 +1,2 @@
+control
+-DCATKIN_DEVEL_PREFIX=/home/mynx1/robot_ws/devel -DCMAKE_INSTALL_PREFIX=/home/mynx1/robot_ws/install -G Unix Makefiles
