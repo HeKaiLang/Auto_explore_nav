@@ -1,0 +1,11 @@
+<launch>
+    <rosparam command="load" file="$(find mine_map_deploy)/config/global_map_listener.yaml" />
+    <node pkg="mine_map_deploy" type="global_map_listener" name="global_map_listener" output="screen">
+        <param name="frames_per_filter" value="50" />
+        <param name="leaf_size" value="0.1" />
+        <param name="save_dir" value="." />
+        <param name="publish_enable" value="true" />
+        <param name="publish_topic" value="/global_map" />
+        <param name="publish_rate" value="1.0" />
+    </node>
+</launch>

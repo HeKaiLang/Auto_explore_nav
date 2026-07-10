@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<package format="2">
+
+  <name>mine_map_deploy</name>
+
+  <version>0.0.1</version>
+
+  <description>
+    Mine map processing system for FAST-LIO
+  </description>
+
+  <maintainer email="robot@todo.todo">
+    robot
+  </maintainer>
+
+  <license>MIT</license>
+
+  <!-- catkin -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- ROS core -->
+  <depend>actionlib</depend>
+  <depend>roscpp</depend>
+
+  <!-- service -->
+  <depend>std_srvs</depend>
+
+  <!-- msgs -->
+  <depend>geometry_msgs</depend>
+  <depend>move_base_flex_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>visualization_msgs</depend>
+
+  <!-- map msg -->
+  <depend>nav_msgs</depend>
+
+  <!-- tf -->
+  <depend>tf</depend>
+
+  <!-- OpenCV bridge -->
+  <depend>cv_bridge</depend>
+
+  <!-- image transport -->
+  <depend>image_transport</depend>
+
+  <!-- PCL -->
+  <depend>pcl_ros</depend>
+  <depend>pcl_conversions</depend>
+
+
+  <depend>std_msgs</depend>
+
+  <depend>tf2_ros</depend>
+
+</package>

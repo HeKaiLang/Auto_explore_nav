@@ -1,0 +1,11 @@
+<launch>
+    <node pkg="mine_map_deploy" type="image_publisher" name="image_publisher" output="screen">
+        <param name="input_topic" value="/global_map" />
+        <param name="output_topic" value="/global_map_grid" />
+        <param name="trigger_service" value="/generate_grid" />
+        <param name="frame_id" value="camera_init" />
+        <param name="resolution" value="0.1" />
+        <param name="z_min" value="-1" />
+        <param name="z_max" value="1.0" />
+    </node>
+</launch>

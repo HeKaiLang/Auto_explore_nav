@@ -1,0 +1,73 @@
+# 机器人几何参数（来源于论文第3.3节运动学模型）
+robot_geometry:
+  n_spine_segments: 10          # 脊柱节数量 n（论文中 n_脊 = 10）
+  spine_pitch_P: 0.02275        # 脊柱节节距 P [m]（论文 P = 22.75 mm）
+  spine_d1: 0.0345              # 几何参数 d1 [m]（论文 d1 = 34.5 mm）
+  spine_d2: 0.00455             # 几何参数 d2 [m]（论文 d2 = 4.55 mm）
+  spine_alpha: 0.0872665        # 几何参数 α [rad]（论文 α = 5°，关节偏转范围 0 ~ 2α）
+
+# 转向舵机A参数（绳驱动，控制机器人弯曲/偏航）
+steering_servo:
+  drum_radius: 0.005            # 舵机轮盘半径 [m]（绳长变化 = 轮盘半径 × 转动角度）
+  steering_servo_ratio: 1.0     # 舵机减速比（电机端转角 / 输出轴转角）
+  pwm_mid: 128                  # 1字节PWM中位（128对应零位，不拉紧）
+  pwm_min: 0
+  pwm_max: 255
+  pwm_to_servo_angle: 0.0122718  # 每PWM单位对应的舵机输出轴角度 [rad] 
+                                # 例：若舵机±90°对应±128PWM，则 90°/128 ≈ 0.01227 rad/单位
+  max_deflection: 0.174533      # 最大关节偏转角 σ_max [rad]（论文 2α = 10°）
+
+# 驱动舵机B参数（连续转动，控制沿曲线切向速度）
+drive_servo:
+  pwm_mid: 128                  # 中位停止
+  pwm_min: 0
+  pwm_max: 255
+  pwm_to_velocity: 0.00625      # 每PWM单位对应的机器人线速度 [m/s]
+                                # 例：若±128PWM对应±0.8 m/s，则 0.8/128 = 0.00625
+  wheel_radius: 0.05115         # 驱动轮半径 [m]（论文分度圆直径 D = 102.3 mm）
+  gear_ratio: 88.0              # 驱动减速比（论文行星减速器 88:1）
+
+# 控制限幅
+control_limits:
+  max_linear_vel: 0.8           # 最大线速度 [m/s]
+  max_angular_vel: 2.0          # 最大角速度 [rad/s]
+  min_linear_vel_for_steering: 0.05  # 低速转向计算阈值（避免v=0时曲率无穷大）
+
+# 激光雷达相对位姿（尾部base_link → 头部lidar_link的标称安装参数）
+# 注：control_to_cmdvel节点会根据实时曲率动态计算头部实际位姿，并叠加此标称偏移
+lidar_transform:
+  x: 0.15
+  y: 0.0
+  z: 0.05
+  roll: 0.0
+  pitch: 0.0
+  yaw: 0.0
+
+# robot_control_params.yaml
+
+# ================== control_to_cmdvel_node ==================
+control_to_cmdvel_node:
+  scale_linear: 0.05      # m/s 每字节偏移 (0x0a -> 0)
+  scale_angular: 0.25   # rad/s 每字节偏移
+  byte_mid: 10            # 0x0a
+
+# ================== cmdvel_to_serial_node ==================
+cmdvel_to_serial_node:
+  serial_port: "/dev/ttyUSB0"
+  serial_baudrate: 115200
+  byte_mid: 10            # 0x0a
+
+  # 与上面互为倒数，用于 cmd_vel -> 字节
+  scale_linear_inv: 20.0
+  scale_angular_inv: 4.0
+
+  # IMU 角速度 PID
+  pid_kp: 2.0
+  pid_ki: 0.1
+  pid_kd: 0.0
+  pid_integral_max: 5.0
+
+  # 绳长保护（论文单侧极限约 36 mm）
+  rope_max_mm: 36.0
+  rope_k_scale: 0.05      # 每字节偏移每 0.01s 积分多少 mm，需根据实际舵机转速标定
+  loop_rate_hz: 100.0
