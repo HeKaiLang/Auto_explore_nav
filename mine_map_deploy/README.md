@@ -369,3 +369,116 @@ rospy  numpy  Pillow (PIL)  tf
 pip3 install numpy Pillow
 sudo apt install ros-noetic-pcl-ros ros-noetic-cv-bridge ros-noetic-image-transport
 ```
+
+---
+# Calon的补充
+## ROS 控制节点架构
+
+本方案将原始单节点串口控制拆分为三个 ROS 节点，实现**控制源解耦**与**IMU 闭环**，支持通过 `twist_mux` 接入多路控制源（手柄、导航、急停等）。
+
+
+---
+
+### 1. `udp_control_bridge`
+
+**功能**：接收 UDP 手柄数据，解析为 5 字节控制帧，发布到 ROS 话题。
+
+| 项目 | 说明 |
+|------|------|
+| **输入** | UDP 端口 `7950` @ `192.168.166.49` |
+| **输出** | `std_msgs/UInt8MultiArray` → `/robot_control_bytes` |
+| **频率** | 100 Hz |
+| **协议** | 5 字节 `[0xff, taitou, shifang, qianjin, zuozhuan]`，映射逻辑与原代码保持一致 |
+| **超时保护** | 0.2 s 未收到 UDP 数据则自动发布停车帧 `[0xff, 0x0a, 0x0a, 0x0a, 0x0a]` |
+
+**与原始代码的差异**：
+- 移除直接串口写入，改为 ROS 话题发布。
+- 保留全部原始映射算法（抬头、释放、前进、转向）。
+- 串口初始化代码保留但注释，可随时回退。
+
+---
+
+### 2. `control_to_cmdvel_node`
+
+**功能**：将 `/robot_control_bytes` 解析为 `geometry_msgs/Twist`，供 `twist_mux` 使用。
+
+| 项目 | 说明 |
+|------|------|
+| **输入** | `/robot_control_bytes` (5 字节) |
+| **输出** | `/cmd_vel` (`geometry_msgs/Twist`) |
+| **映射关系** | `linear.x` ← 第 4 字节 (`qianjin`)<br>`angular.z` ← 第 5 字节 (`zuozhuan`) |
+| **标定参数** | `scale_linear` (m/s 每字节偏移)<br>`scale_angular` (rad/s 每字节偏移)<br>`byte_mid` (中位值，默认 `0x0a`) |
+
+**适用场景**：手柄遥控时，将底层字节协议转换为标准 ROS 速度指令，接入导航/避障/急停等多路控制源的仲裁层。
+
+---
+
+### 3. `cmdvel_to_serial_node`
+
+**功能**：订阅 `twist_mux` 输出的 `/cmd_vel` 与 IMU 角速度，执行 **PID 角速度闭环 + 绳长保护**，最终通过串口下发 5 字节控制帧。
+
+| 项目 | 说明 |
+|------|------|
+| **输入** | `/cmd_vel` (`geometry_msgs/Twist`)<br>`/imu/data` (`sensor_msgs/Imu`，取 `angular_velocity.z`) |
+| **输出** | `/dev/ttyUSB0` @ 115200，5 字节协议帧 |
+| **控制频率** | 100 Hz |
+
+#### 3.1 角速度闭环（IMU PID）
+
+- **期望**：`cmd_vel.angular.z`
+- **反馈**：IMU 实测 `yaw rate`
+- **控制器**：位置式离散 PID
+  - `u = Kp·e + Ki·∫e·dt + Kd·de/dt`
+  - 积分限幅（Anti-Windup）：`integral_ ∈ [-integral_max, integral_max]`
+- **前馈 + 反馈**：转向字节以开环映射为前馈，PID 输出作为补偿量叠加。
+
+#### 3.2 绳长保护（软件限幅）
+
+由于转向舵机为 **360° 连续旋转电机**（非论文中的位置舵机），绳长会随转向指令持续累积。节点内部维护估算绳长差 `rope_delta`：
+
+- 每周期积分：`rope_delta += K_rope · (steering_byte - 0x0a) · dt`
+- 限幅：`|rope_delta| ≤ rope_max_mm`（默认 36 mm，对应论文单侧极限）
+- 饱和策略：达到限幅时，禁止同向转向指令，强制回中 `0x0a`，直到收到反向指令。
+
+#### 3.3 上电回中
+
+节点启动后，连续发送 1 秒中位帧 `[0xff, 0x0a, 0x0a, 0x0a, 0x0a]`，使舵机停转、棘轮机构自然回中，消除上电时绳子的初始张紧误差。
+
+#### 3.4 线速度控制
+
+驱动舵机（履带）采用 **开环映射**：`cmd_vel.linear.x` 直接按比例转换为字节偏移，经 `[0, 255]` 限幅后输出。
+
+---
+
+### 参数配置（YAML）
+
+所有标定参数集中存放，节点通过私有命名空间 `~` 读取：
+
+```yaml
+# control_to_cmdvel_node
+control_to_cmdvel_node:
+  scale_linear: 0.05      # m/s per byte offset
+  scale_angular: 0.25     # rad/s per byte offset
+  byte_mid: 10            # 0x0a
+
+# cmdvel_to_serial_node
+cmdvel_to_serial_node:
+  serial_port: "/dev/ttyUSB0"
+  serial_baudrate: 115200
+  byte_mid: 10
+
+  # 速度映射（与 control_to_cmdvel_node 互为倒数）
+  scale_linear_inv: 20.0
+  scale_angular_inv: 4.0
+
+  # PID 角速度闭环
+  pid_kp: 2.0
+  pid_ki: 0.1
+  pid_kd: 0.0
+  pid_integral_max: 5.0
+
+  # 绳长保护
+  rope_max_mm: 36.0       # 论文单侧极限 ~36 mm
+  rope_k_scale: 0.05      # mm/byte/loop，需根据舵机转速标定
+  loop_rate_hz: 100.0
+
